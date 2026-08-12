@@ -1,550 +1,1100 @@
 <!DOCTYPE html>
 <html lang="sv">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>My Health</title>
+    <meta charset="UTF-8">
 
-  <link rel="stylesheet" href="style.css">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>My Health</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/chart.js"
+    ></script>
+
 </head>
+
 
 <body>
 
+
 <div class="app">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
 
-    <div class="brand">
-      <div class="brand-mark">M</div>
+    <!-- SIDEBAR -->
 
-      <div>
-        <strong>MY HEALTH</strong>
-        <span>PERFORMANCE</span>
-      </div>
-    </div>
+    <aside class="sidebar">
 
-    <nav>
+        <div class="brand">
 
-      <button class="nav active">
-        <span>⌂</span>
-        Översikt
-      </button>
-
-      <button class="nav">
-        <span>◈</span>
-        Träning
-      </button>
-
-      <button class="nav">
-        <span>♡</span>
-        Hälsa
-      </button>
-
-      <button class="nav">
-        <span>◷</span>
-        Sömn
-      </button>
-
-      <button class="nav">
-        <span>◉</span>
-        Nutrition
-      </button>
-
-    </nav>
-
-    <div class="sidebar-bottom">
-
-      <div class="device">
-
-        <div class="device-icon">G</div>
-
-        <div>
-          <strong>GARMIN</strong>
-          <span class="online">
-            <i></i> Connected
-          </span>
-        </div>
-
-      </div>
-
-      <div class="version">
-        MY HEALTH v1.0
-      </div>
-
-    </div>
-
-  </aside>
-
-
-  <!-- MAIN -->
-  <main>
-
-    <!-- HEADER -->
-    <header class="topbar">
-
-      <div>
-
-        <span class="section-tag">
-          PERFORMANCE CENTER
-        </span>
-
-        <h1>Träningsöversikt</h1>
-
-        <p id="date"></p>
-
-      </div>
-
-      <button
-        class="sync"
-        id="syncButton"
-        onclick="syncData()"
-      >
-        <span>↻</span>
-        SYNKA DATA
-      </button>
-
-    </header>
-
-
-    <!-- HERO STATS -->
-    <section class="hero-grid">
-
-
-      <!-- TRAINING LOAD -->
-
-      <div class="hero-card training-card">
-
-        <div class="card-top">
-
-          <div>
-            <span class="label">
-              TRAINING LOAD
-            </span>
-
-            <h2>Träningsbelastning</h2>
-          </div>
-
-          <span class="status good">
-            OPTIMAL
-          </span>
-
-        </div>
-
-
-        <div class="training-score">
-
-          <div class="score-circle">
+            <div class="brand-logo">
+                M
+            </div>
 
             <div>
 
-              <strong>74</strong>
+                <strong>
+                    MY HEALTH
+                </strong>
 
-              <span>/ 100</span>
+                <small>
+                    PERFORMANCE
+                </small>
 
             </div>
-
-          </div>
-
-
-          <div class="score-info">
-
-            <div class="score-row">
-              <span>7 dagar</span>
-              <strong>486</strong>
-            </div>
-
-            <div class="score-row">
-              <span>4 veckor</span>
-              <strong>1 842</strong>
-            </div>
-
-            <div class="score-row">
-              <span>Trend</span>
-              <strong class="green">+8%</strong>
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <!-- STEPS -->
-
-      <div class="hero-card">
-
-        <div class="card-top">
-
-          <div>
-            <span class="label">STEG</span>
-            <h2>12 842</h2>
-          </div>
-
-          <span class="metric-icon">⌁</span>
 
         </div>
 
 
-        <div class="progress-wrap">
+        <nav>
 
-          <div class="progress">
+            <button
+                class="nav-item active"
+                data-page="dashboard"
+            >
+
+                <span>⌂</span>
+
+                Dashboard
+
+            </button>
+
+
+            <button
+                class="nav-item"
+                data-page="training"
+            >
+
+                <span>◈</span>
+
+                Träning
+
+            </button>
+
+
+            <button
+                class="nav-item"
+                data-page="health"
+            >
+
+                <span>♥</span>
+
+                Hälsa
+
+            </button>
+
+
+            <button
+                class="nav-item"
+                data-page="sleep"
+            >
+
+                <span>◷</span>
+
+                Sömn
+
+            </button>
+
+
+            <button
+                class="nav-item"
+                data-page="analytics"
+            >
+
+                <span>⌁</span>
+
+                Analytics
+
+            </button>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <div class="garmin-status">
+
+                <div class="garmin-icon">
+                    G
+                </div>
+
+                <div>
+
+                    <strong>
+                        GARMIN
+                    </strong>
+
+                    <small>
+                        <i></i>
+                        Connected
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="version">
+                MY HEALTH · v1.0
+            </div>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- MAIN -->
+
+    <main>
+
+
+        <!-- TOP BAR -->
+
+        <header class="topbar">
+
+            <div>
+
+                <span class="eyebrow">
+                    PERFORMANCE CENTER
+                </span>
+
+                <h1 id="pageTitle">
+                    Dashboard
+                </h1>
+
+                <p id="date"></p>
+
+            </div>
+
+
+            <button
+                class="sync-button"
+                onclick="syncData()"
+            >
+
+                <span>↻</span>
+
+                SYNKA DATA
+
+            </button>
+
+        </header>
+
+
+
+        <!-- DASHBOARD -->
+
+        <section
+            id="dashboard"
+            class="page active-page"
+        >
+
+
+            <!-- TOP CARDS -->
+
+            <div class="stats-grid">
+
+
+                <!-- STEPS -->
+
+                <div class="stat-card">
+
+                    <div class="card-header">
+
+                        <div>
+
+                            <span class="label">
+                                STEG
+                            </span>
+
+                            <h2 id="steps">
+                                12 842
+                            </h2>
+
+                        </div>
+
+                        <div class="card-icon green">
+                            👣
+                        </div>
+
+                    </div>
+
+
+                    <div class="progress">
+
+                        <div
+                            id="stepProgress"
+                            class="progress-bar green-bar"
+                        ></div>
+
+                    </div>
+
+
+                    <div class="card-footer">
+
+                        <span>
+                            Dagens mål
+                        </span>
+
+                        <strong id="stepGoal">
+                            15 000
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- CALORIES -->
+
+                <div class="stat-card">
+
+                    <div class="card-header">
+
+                        <div>
+
+                            <span class="label">
+                                KALORIER
+                            </span>
+
+                            <h2 id="calories">
+                                2 341
+                            </h2>
+
+                        </div>
+
+                        <div class="card-icon orange">
+                            🔥
+                        </div>
+
+                    </div>
+
+
+                    <div class="progress">
+
+                        <div
+                            id="calorieProgress"
+                            class="progress-bar orange-bar"
+                        ></div>
+
+                    </div>
+
+
+                    <div class="card-footer">
+
+                        <span>
+                            Dagens mål
+                        </span>
+
+                        <strong>
+                            2 800 kcal
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- HEART -->
+
+                <div class="stat-card">
+
+                    <div class="card-header">
+
+                        <div>
+
+                            <span class="label">
+                                VILOPULS
+                            </span>
+
+                            <h2>
+                                <span id="heartRate">
+                                    58
+                                </span>
+
+                                <small>
+                                    bpm
+                                </small>
+                            </h2>
+
+                        </div>
+
+                        <div class="card-icon red">
+                            ♥
+                        </div>
+
+                    </div>
+
+
+                    <div class="heart-line">
+
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+
+                    </div>
+
+
+                    <div class="card-footer">
+
+                        <span>
+                            Status
+                        </span>
+
+                        <strong class="green-text">
+                            Bra
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- BODY BATTERY -->
+
+                <div class="stat-card">
+
+                    <div class="card-header">
+
+                        <div>
+
+                            <span class="label">
+                                BODY BATTERY
+                            </span>
+
+                            <h2>
+                                <span id="bodyBattery">
+                                    74
+                                </span>
+
+                                <small>
+                                    %
+                                </small>
+                            </h2>
+
+                        </div>
+
+                        <div class="card-icon blue">
+                            ⚡
+                        </div>
+
+                    </div>
+
+
+                    <div class="battery">
+
+                        <div
+                            id="batteryProgress"
+                            class="battery-level"
+                        ></div>
+
+                    </div>
+
+
+                    <div class="card-footer">
+
+                        <span>
+                            Status
+                        </span>
+
+                        <strong class="green-text">
+                            Good
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- MAIN CHART -->
+
+            <div class="panel chart-panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <span class="label">
+                            PERFORMANCE
+                        </span>
+
+                        <h2>
+                            Din utveckling
+                        </h2>
+
+                    </div>
+
+
+                    <div class="chart-buttons">
+
+                        <button
+                            class="chart-button active"
+                            data-chart="trainingLoad"
+                        >
+                            Belastning
+                        </button>
+
+                        <button
+                            class="chart-button"
+                            data-chart="steps"
+                        >
+                            Steg
+                        </button>
+
+                        <button
+                            class="chart-button"
+                            data-chart="heartRate"
+                        >
+                            Puls
+                        </button>
+
+                        <button
+                            class="chart-button"
+                            data-chart="calories"
+                        >
+                            Kalorier
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="chart-container">
+
+                    <canvas id="mainChart"></canvas>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- TWO COLUMNS -->
+
+            <div class="two-columns">
+
+
+                <!-- RECENT WORKOUTS -->
+
+                <div class="panel">
+
+                    <div class="panel-header">
+
+                        <div>
+
+                            <span class="label">
+                                ACTIVITY
+                            </span>
+
+                            <h2>
+                                Senaste träningar
+                            </h2>
+
+                        </div>
+
+                        <button
+                            class="view-all"
+                            data-page-link="training"
+                        >
+                            VISA ALLA →
+                        </button>
+
+                    </div>
+
+
+                    <div
+                        id="workoutList"
+                        class="workout-list"
+                    ></div>
+
+                </div>
+
+
+
+                <!-- BODY STATUS -->
+
+                <div class="panel">
+
+                    <div class="panel-header">
+
+                        <div>
+
+                            <span class="label">
+                                BODY STATUS
+                            </span>
+
+                            <h2>
+                                Kroppsstatus
+                            </h2>
+
+                        </div>
+
+                        <span class="status-badge">
+                            BRA
+                        </span>
+
+                    </div>
+
+
+                    <div class="body-grid">
+
+
+                        <div class="body-stat">
+
+                            <div class="body-icon red">
+                                ♥
+                            </div>
+
+                            <div>
+
+                                <small>
+                                    Vilopuls
+                                </small>
+
+                                <strong>
+                                    58
+                                    <em>bpm</em>
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="body-stat">
+
+                            <div class="body-icon green">
+                                ≋
+                            </div>
+
+                            <div>
+
+                                <small>
+                                    HRV
+                                </small>
+
+                                <strong>
+                                    64
+                                    <em>ms</em>
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="body-stat">
+
+                            <div class="body-icon blue">
+                                ⚡
+                            </div>
+
+                            <div>
+
+                                <small>
+                                    Body Battery
+                                </small>
+
+                                <strong>
+                                    74
+                                    <em>%</em>
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="body-stat">
+
+                            <div class="body-icon orange">
+                                ◉
+                            </div>
+
+                            <div>
+
+                                <small>
+                                    Stress
+                                </small>
+
+                                <strong>
+                                    31
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- WEEKLY -->
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <span class="label">
+                            THIS WEEK
+                        </span>
+
+                        <h2>
+                            Träningsvolym
+                        </h2>
+
+                    </div>
+
+
+                    <div class="weekly-total">
+
+                        <strong>
+                            4h 32m
+                        </strong>
+
+                        <small>
+                            denna vecka
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="week-chart">
+
+                    <div class="week-day">
+                        <span>M</span>
+                        <div>
+                            <i style="height:54%"></i>
+                        </div>
+                        <small>52m</small>
+                    </div>
+
+                    <div class="week-day">
+                        <span>T</span>
+                        <div>
+                            <i style="height:35%"></i>
+                        </div>
+                        <small>32m</small>
+                    </div>
+
+                    <div class="week-day">
+                        <span>O</span>
+                        <div>
+                            <i style="height:0%"></i>
+                        </div>
+                        <small>0m</small>
+                    </div>
+
+                    <div class="week-day today">
+                        <span>T</span>
+                        <div>
+                            <i style="height:68%"></i>
+                        </div>
+                        <small>1h 04m</small>
+                    </div>
+
+                    <div class="week-day">
+                        <span>F</span>
+                        <div>
+                            <i style="height:0%"></i>
+                        </div>
+                        <small>0m</small>
+                    </div>
+
+                    <div class="week-day">
+                        <span>L</span>
+                        <div>
+                            <i style="height:82%"></i>
+                        </div>
+                        <small>1h 12m</small>
+                    </div>
+
+                    <div class="week-day">
+                        <span>S</span>
+                        <div>
+                            <i style="height:54%"></i>
+                        </div>
+                        <small>52m</small>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- TRAINING PAGE -->
+
+        <section
+            id="training"
+            class="page"
+        >
+
+            <div class="page-intro">
+
+                <span class="eyebrow">
+                    TRAINING
+                </span>
+
+                <h2>
+                    Din träning
+                </h2>
+
+                <p>
+                    Alla dina träningspass samlade på ett ställe.
+                </p>
+
+            </div>
+
 
             <div
-              class="progress-value"
-              style="width:86%"
+                id="allWorkouts"
+                class="training-grid"
             ></div>
 
-          </div>
-
-          <div class="progress-text">
-            <span>86% av målet</span>
-            <strong>15 000</strong>
-          </div>
-
-        </div>
+        </section>
 
 
-        <div class="mini-chart">
 
-          <div style="height:35%"></div>
-          <div style="height:55%"></div>
-          <div style="height:43%"></div>
-          <div style="height:78%"></div>
-          <div style="height:64%"></div>
-          <div style="height:91%"></div>
-          <div class="today" style="height:82%"></div>
+        <!-- HEALTH PAGE -->
 
-        </div>
+        <section
+            id="health"
+            class="page"
+        >
 
-      </div>
+            <div class="page-intro">
 
+                <span class="eyebrow">
+                    HEALTH
+                </span>
 
-      <!-- CALORIES -->
+                <h2>
+                    Hälsa
+                </h2>
 
-      <div class="hero-card">
+                <p>
+                    Din kropp och återhämtning.
+                </p>
 
-        <div class="card-top">
-
-          <div>
-            <span class="label">
-              AKTIVA KALORIER
-            </span>
-
-            <h2>624 <small>kcal</small></h2>
-          </div>
-
-          <span class="metric-icon orange">
-            ◉
-          </span>
-
-        </div>
-
-
-        <div class="calorie-ring">
-
-          <div class="ring">
-
-            <div>
-              <strong>78%</strong>
-              <span>mål</span>
             </div>
 
-          </div>
 
-        </div>
+            <div class="health-grid">
 
-        <div class="calorie-info">
+                <div class="big-health-card">
 
-          <span>Förbränt</span>
-          <strong>624 / 800 kcal</strong>
+                    <span class="label">
+                        VILOPULS
+                    </span>
 
-        </div>
+                    <strong>
+                        58
+                        <small>bpm</small>
+                    </strong>
 
-      </div>
+                    <div class="fake-heart-chart"></div>
 
-    </section>
-
-
-    <!-- CHART -->
-
-    <section class="panel">
-
-      <div class="panel-header">
-
-        <div>
-          <span class="label">
-            PERFORMANCE
-          </span>
-
-          <h2>Din utveckling</h2>
-        </div>
+                </div>
 
 
-        <div class="chart-controls">
+                <div class="big-health-card">
 
-          <button
-            class="chart-btn active"
-            data-type="load"
-          >
-            Belastning
-          </button>
+                    <span class="label">
+                        HRV
+                    </span>
 
-          <button
-            class="chart-btn"
-            data-type="steps"
-          >
-            Steg
-          </button>
+                    <strong>
+                        64
+                        <small>ms</small>
+                    </strong>
 
-          <button
-            class="chart-btn"
-            data-type="heart"
-          >
-            Puls
-          </button>
+                    <p class="green-text">
+                        +6% jämfört med förra veckan
+                    </p>
 
-          <button
-            class="chart-btn"
-            data-type="calories"
-          >
-            Kalorier
-          </button>
-
-        </div>
-
-      </div>
+                </div>
 
 
-      <div class="chart-area">
+                <div class="big-health-card">
 
-        <canvas id="mainChart"></canvas>
+                    <span class="label">
+                        STRESS
+                    </span>
 
-      </div>
+                    <strong>
+                        31
+                    </strong>
 
-    </section>
+                    <p>
+                        Låg till måttlig stress
+                    </p>
 
-
-    <!-- LOWER GRID -->
-
-    <section class="two-column">
-
-
-      <!-- WORKOUTS -->
-
-      <div class="panel">
-
-        <div class="panel-header">
-
-          <div>
-
-            <span class="label">
-              ACTIVITY
-            </span>
-
-            <h2>Senaste träningar</h2>
-
-          </div>
-
-          <button class="text-button">
-            VISA ALLA →
-          </button>
-
-        </div>
+                </div>
 
 
-        <div class="workouts" id="workouts"></div>
+                <div class="big-health-card">
 
-      </div>
+                    <span class="label">
+                        BODY BATTERY
+                    </span>
 
+                    <strong>
+                        74%
+                    </strong>
 
-      <!-- BODY STATUS -->
+                    <div class="battery large">
+                        <div
+                            class="battery-level"
+                            style="width:74%"
+                        ></div>
+                    </div>
 
-      <div class="panel">
+                </div>
 
-        <div class="panel-header">
-
-          <div>
-
-            <span class="label">
-              BODY STATUS
-            </span>
-
-            <h2>Kroppsstatus</h2>
-
-          </div>
-
-          <span class="status good">
-            BRA
-          </span>
-
-        </div>
-
-
-        <div class="body-grid">
-
-
-          <div class="body-item">
-
-            <span class="body-icon heart">
-              ♥
-            </span>
-
-            <div>
-              <small>Vilopuls</small>
-              <strong>58 <em>bpm</em></strong>
             </div>
 
-          </div>
+        </section>
 
 
-          <div class="body-item">
 
-            <span class="body-icon">
-              ≋
-            </span>
+        <!-- SLEEP PAGE -->
 
-            <div>
-              <small>HRV</small>
-              <strong>64 <em>ms</em></strong>
+        <section
+            id="sleep"
+            class="page"
+        >
+
+            <div class="page-intro">
+
+                <span class="eyebrow">
+                    RECOVERY
+                </span>
+
+                <h2>
+                    Sömn
+                </h2>
+
+                <p>
+                    Din sömn och återhämtning.
+                </p>
+
             </div>
 
-          </div>
+
+            <div class="sleep-overview">
+
+                <div class="sleep-score">
+
+                    <span>
+                        SLEEP SCORE
+                    </span>
+
+                    <strong>
+                        87
+                    </strong>
+
+                    <small>
+                        Excellent
+                    </small>
+
+                </div>
 
 
-          <div class="body-item">
+                <div class="sleep-time">
 
-            <span class="body-icon">
-              ⚡
-            </span>
+                    <span>
+                        SENASTE NATT
+                    </span>
 
-            <div>
-              <small>Body Battery</small>
-              <strong>74 <em>%</em></strong>
+                    <strong>
+                        7h 42m
+                    </strong>
+
+                    <div class="sleep-progress">
+                        <div style="width:96%"></div>
+                    </div>
+
+                    <small>
+                        96% av ditt mål
+                    </small>
+
+                </div>
+
             </div>
 
-          </div>
 
+            <div class="sleep-stages">
 
-          <div class="body-item">
+                <div>
+                    <span>Deep</span>
+                    <strong>1h 24m</strong>
+                </div>
 
-            <span class="body-icon orange">
-              ◉
-            </span>
+                <div>
+                    <span>REM</span>
+                    <strong>1h 48m</strong>
+                </div>
 
-            <div>
-              <small>Stress</small>
-              <strong>31</strong>
+                <div>
+                    <span>Light</span>
+                    <strong>4h 30m</strong>
+                </div>
+
             </div>
 
-          </div>
+        </section>
 
 
-        </div>
 
-      </div>
+        <!-- ANALYTICS -->
 
-    </section>
+        <section
+            id="analytics"
+            class="page"
+        >
 
+            <div class="page-intro">
 
-    <!-- WEEKLY TRAINING -->
+                <span class="eyebrow">
+                    ANALYTICS
+                </span>
 
-    <section class="panel weekly">
+                <h2>
+                    Analytics
+                </h2>
 
-      <div class="panel-header">
+                <p>
+                    Se hur din träning utvecklas över tid.
+                </p>
 
-        <div>
-
-          <span class="label">
-            THIS WEEK
-          </span>
-
-          <h2>Träningsvolym</h2>
-
-        </div>
-
-        <div class="weekly-total">
-
-          <strong>4h 32m</strong>
-          <span>total träning</span>
-
-        </div>
-
-      </div>
+            </div>
 
 
-      <div class="week-chart">
+            <div class="analytics-grid">
 
-        <div class="week-day">
-          <span>M</span>
-          <div><i style="height:54%"></i></div>
-          <small>52m</small>
-        </div>
+                <div class="analytics-card">
 
-        <div class="week-day">
-          <span>T</span>
-          <div><i style="height:35%"></i></div>
-          <small>32m</small>
-        </div>
+                    <span>
+                        TRÄNINGSBELASTNING
+                    </span>
 
-        <div class="week-day">
-          <span>O</span>
-          <div><i style="height:0%"></i></div>
-          <small>0m</small>
-        </div>
+                    <strong>
+                        +8.4%
+                    </strong>
 
-        <div class="week-day today">
-          <span>T</span>
-          <div><i style="height:68%"></i></div>
-          <small>1h 04m</small>
-        </div>
+                    <small>
+                        senaste 7 dagarna
+                    </small>
 
-        <div class="week-day">
-          <span>F</span>
-          <div><i style="height:0%"></i></div>
-          <small>0m</small>
-        </div>
-
-        <div class="week-day">
-          <span>L</span>
-          <div><i style="height:82%"></i></div>
-          <small>1h 12m</small>
-        </div>
-
-        <div class="week-day">
-          <span>S</span>
-          <div><i style="height:54%"></i></div>
-          <small>52m</small>
-        </div>
-
-      </div>
-
-    </section>
+                </div>
 
 
-    <!-- FOOTER -->
+                <div class="analytics-card">
 
-    <footer>
+                    <span>
+                        STEG
+                    </span>
 
-      <span>
-        MY HEALTH · PERSONAL PERFORMANCE
-      </span>
+                    <strong>
+                        +12.1%
+                    </strong>
 
-      <span id="lastSync">
-        Senast synkad: —
-      </span>
+                    <small>
+                        jämfört med förra veckan
+                    </small>
 
-    </footer>
+                </div>
 
-  </main>
+
+                <div class="analytics-card">
+
+                    <span>
+                        SÖMN
+                    </span>
+
+                    <strong>
+                        7h 42m
+                    </strong>
+
+                    <small>
+                        genomsnitt
+                    </small>
+
+                </div>
+
+
+                <div class="analytics-card">
+
+                    <span>
+                        TRÄNING
+                    </span>
+
+                    <strong>
+                        4h 32m
+                    </strong>
+
+                    <small>
+                        denna vecka
+                    </small>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <footer>
+
+            <span>
+                MY HEALTH · PERSONAL PERFORMANCE
+            </span>
+
+            <span id="lastSync">
+                Senast synkad: —
+            </span>
+
+        </footer>
+
+    </main>
 
 </div>
 
+
+<script src="data.js"></script>
 <script src="app.js"></script>
 
 </body>
+
 </html>
