@@ -1,687 +1,1211 @@
-// ==========================================
-// MY HEALTH - APP
-// ==========================================
+const API = "http://localhost:5000/api";
 
-const pages = document.querySelectorAll(".page");
-const navItems = document.querySelectorAll(".nav-item");
-const pageTitle = document.getElementById("pageTitle");
-const dateElement = document.getElementById("date");
+let dashboardData = null;
+let activities = [];
+let dailyData = [];
+let sleepData = [];
+let hrvData = [];
+let weightData = [];
 
 
-// ==========================================
-// DATE
-// ==========================================
+// ============================================================
+// HELPERS
+// ============================================================
 
-function updateDate() {
+function formatNumber(value) {
+    if (value === null || value === undefined) return "—";
 
-    const now = new Date();
+    return Number(value).toLocaleString("sv-SE", {
+        maximumFractionDigits: 1
+    });
+}
 
-    const date = now.toLocaleDateString("sv-SE", {
+
+function formatDistance(value) {
+    if (value === null || value === undefined) return "—";
+
+    return Number(value).toFixed(1);
+}
+
+
+function formatSleep(time) {
+
+    if (!time) return "—";
+
+    const parts = time.split(":");
+
+    if (parts.length < 2) return time;
+
+    const hours = parseInt(parts[0]);
+    const minutes = parseInt(parts[1]);
+
+    return `${hours}h ${minutes}m`;
+}
+
+
+function formatDate(dateString) {
+
+    if (!dateString) return "—";
+
+    const date = new Date(dateString);
+
+    if (isNaN(date)) return dateString;
+
+    return date.toLocaleDateString("sv-SE", {
         weekday: "long",
         day: "numeric",
         month: "long",
         year: "numeric"
     });
-
-    dateElement.textContent =
-        date.charAt(0).toUpperCase() + date.slice(1);
 }
 
-updateDate();
+
+function formatDuration(time) {
+
+    if (!time) return "—";
+
+    const parts = time.split(":");
+
+    if (parts.length < 2) return time;
+
+    const hours = parseInt(parts[0]);
+    const minutes = parseInt(parts[1]);
+
+    if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    }
+
+    return `${minutes}m`;
+}
 
 
-// ==========================================
-// NAVIGATION
-// ==========================================
+// ============================================================
+// API
+// ============================================================
 
-const titles = {
-    dashboard: "Dashboard",
-    training: "Träning",
-    health: "Hälsa",
-    sleep: "Sömn",
-    analytics: "Analytics"
-};
+async function fetchAPI(endpoint) {
 
+    const response = await fetch(`${API}${endpoint}`);
 
-function showPage(pageName) {
+    if (!response.ok) {
+        throw new Error(
+            `API error ${response.status}: ${endpoint}`
+        );
+    }
 
-    pages.forEach(page => {
-
-        page.classList.remove("active-page");
-
-    });
+    return await response.json();
+}
 
 
-    const selectedPage =
-        document.getElementById(pageName);
+// ============================================================
+// LOAD DATA
+// ============================================================
 
-    if (selectedPage) {
+async function loadGarminData() {
 
-        selectedPage.classList.add("active-page");
+    try {
+
+        console.log("Hämtar Garmin-data...");
+
+        const [
+            dashboard,
+            activityData,
+            daily,
+            sleep,
+            hrv,
+            weight
+        ] = await Promise.all([
+
+            fetchAPI("/dashboard"),
+
+            fetchAPI("/activities"),
+
+            fetchAPI("/daily"),
+
+            fetchAPI("/sleep"),
+
+            fetchAPI("/hrv"),
+
+            fetchAPI("/weight")
+
+        ]);
+
+
+        dashboardData = dashboard;
+
+        activities = activityData;
+
+        dailyData = daily;
+
+        sleepData = sleep;
+
+        hrvData = hrv;
+
+        weightData = weight;
+
+
+        updateDashboard();
+
+        updateTraining();
+
+        updateHealth();
+
+        updateSleep();
+
+        updateAnalytics();
+
+        updateLastSync();
+
+
+        console.log(
+            "Garmin-data laddad:",
+            dashboardData
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Kunde inte hämta Garmin-data:",
+            error
+        );
+
+        showConnectionError();
+
+    }
+
+}
+
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+
+function updateDashboard() {
+
+    if (!dashboardData) return;
+
+
+    // STEPS
+
+    const steps =
+        dashboardData.steps || 0;
+
+    const stepGoal =
+        dashboardData.stepGoal || 0;
+
+
+    setText(
+        "steps",
+        formatNumber(steps)
+    );
+
+
+    setText(
+        "stepGoal",
+        formatNumber(stepGoal)
+    );
+
+
+    if (stepGoal > 0) {
+
+        const percentage =
+            Math.min(
+                (steps / stepGoal) * 100,
+                100
+            );
+
+        setWidth(
+            "stepProgress",
+            percentage
+        );
 
     }
 
 
-    navItems.forEach(button => {
+    // CALORIES
 
-        button.classList.remove("active");
+    const calories =
+        dashboardData.calories || 0;
 
-        if (button.dataset.page === pageName) {
-
-            button.classList.add("active");
-
-        }
-
-    });
+    const calorieGoal =
+        dashboardData.calorieGoal || 0;
 
 
-    pageTitle.textContent =
-        titles[pageName] || "Dashboard";
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-}
+    setText(
+        "calories",
+        formatNumber(calories)
+    );
 
 
-navItems.forEach(button => {
+    if (calorieGoal > 0) {
 
-    button.addEventListener("click", () => {
+        const percentage =
+            Math.min(
+                (calories / calorieGoal) * 100,
+                100
+            );
 
-        showPage(button.dataset.page);
-
-    });
-
-});
-
-
-document.querySelectorAll("[data-page-link]")
-    .forEach(button => {
-
-        button.addEventListener("click", () => {
-
-            showPage(button.dataset.pageLink);
-
-        });
-
-    });
-
-
-// ==========================================
-// DASHBOARD DATA
-// ==========================================
-
-function loadDashboard() {
-
-    const today = healthData.today;
-
-
-    document.getElementById("steps").textContent =
-        today.steps.toLocaleString("sv-SE");
-
-
-    document.getElementById("stepGoal").textContent =
-        today.stepGoal.toLocaleString("sv-SE");
-
-
-    document.getElementById("calories").textContent =
-        today.calories.toLocaleString("sv-SE");
-
-
-    document.getElementById("heartRate").textContent =
-        today.restingHeartRate;
-
-
-    document.getElementById("bodyBattery").textContent =
-        today.bodyBattery;
-
-
-    // STEP PROGRESS
-
-    const stepPercent =
-        Math.min(
-            (today.steps / today.stepGoal) * 100,
-            100
+        setWidth(
+            "calorieProgress",
+            percentage
         );
 
-    document.getElementById(
-        "stepProgress"
-    ).style.width =
-        `${stepPercent}%`;
+    }
 
 
-    // CALORIE PROGRESS
+    // HEART RATE
 
-    const caloriePercent =
-        Math.min(
-            (today.calories / today.calorieGoal) * 100,
-            100
-        );
+    const restingHeartRate =
+        dashboardData.restingHeartRate;
 
-    document.getElementById(
-        "calorieProgress"
-    ).style.width =
-        `${caloriePercent}%`;
+
+    setText(
+        "heartRate",
+        restingHeartRate ?? "—"
+    );
 
 
     // BODY BATTERY
 
-    document.getElementById(
-        "batteryProgress"
-    ).style.width =
-        `${today.bodyBattery}%`;
-}
+    const bodyBattery =
+        dashboardData.bodyBattery?.max;
 
 
-// ==========================================
-// WORKOUT LIST
-// ==========================================
+    setText(
+        "bodyBattery",
+        bodyBattery ?? "—"
+    );
 
-function workoutIcon(type) {
 
-    switch (type) {
+    if (bodyBattery !== null &&
+        bodyBattery !== undefined) {
 
-        case "Running":
-            return "🏃";
+        setWidth(
+            "batteryProgress",
+            bodyBattery
+        );
 
-        case "Cycling":
-            return "🚴";
-
-        case "Strength":
-            return "🏋";
-
-        default:
-            return "⚡";
     }
+
+
+    // DATE
+
+    setText(
+        "date",
+        formatDate(dashboardData.date)
+    );
+
+
+    // BODY STATUS
+
+    updateBodyStatus();
+
+    // RECENT WORKOUTS
+
+    renderRecentWorkouts();
+
 }
 
 
-function renderWorkouts() {
+// ============================================================
+// BODY STATUS
+// ============================================================
+
+function updateBodyStatus() {
+
+    const bodyStats =
+        document.querySelectorAll(".body-stat strong");
+
+
+    if (bodyStats.length >= 4) {
+
+        bodyStats[0].innerHTML =
+            `${dashboardData.restingHeartRate ?? "—"} <em>bpm</em>`;
+
+
+        const latestHRV =
+            hrvData.length
+                ? hrvData[0].hrv
+                : null;
+
+
+        bodyStats[1].innerHTML =
+            `${latestHRV ?? "—"} <em>ms</em>`;
+
+
+        bodyStats[2].innerHTML =
+            `${dashboardData.bodyBattery?.max ?? "—"} <em>%</em>`;
+
+
+        bodyStats[3].innerHTML =
+            `${dashboardData.stress ?? "—"}`;
+
+    }
+
+}
+
+
+// ============================================================
+// RECENT WORKOUTS
+// ============================================================
+
+function renderRecentWorkouts() {
 
     const container =
         document.getElementById("workoutList");
 
+    if (!container) return;
+
+
     container.innerHTML = "";
 
 
-    healthData.training.workouts
-        .slice(0, 4)
-        .forEach(workout => {
-
-            const element =
-                document.createElement("div");
-
-            element.className = "workout";
+    const recent =
+        activities.slice(0, 5);
 
 
-            const distance =
-                workout.distance > 0
-                    ? `${workout.distance} km`
-                    : "Styrka";
+    if (!recent.length) {
+
+        container.innerHTML =
+            `<p>Inga träningspass hittades.</p>`;
+
+        return;
+
+    }
 
 
-            element.innerHTML = `
+    recent.forEach(activity => {
 
-                <div class="workout-left">
+        const div =
+            document.createElement("div");
 
-                    <div class="workout-icon">
-
-                        ${workoutIcon(workout.type)}
-
-                    </div>
-
-                    <div>
-
-                        <div class="workout-name">
-
-                            ${workout.name}
-
-                        </div>
-
-                        <div class="workout-meta">
-
-                            ${workout.date}
-                            ·
-                            ${workout.duration} min
-
-                        </div>
-
-                    </div>
-
-                </div>
+        div.className =
+            "workout-item";
 
 
-                <div class="workout-right">
-
-                    <div class="workout-time">
-
-                        ${workout.calories} kcal
-
-                    </div>
-
-                    <div class="workout-distance">
-
-                        ${distance}
-
-                    </div>
-
-                </div>
-
-            `;
+        const sport =
+            activity.sport || "Träning";
 
 
-            container.appendChild(element);
+        const name =
+            activity.name || sport;
 
-        });
+
+        div.innerHTML = `
+
+            <div class="workout-icon">
+                ${getSportIcon(sport)}
+            </div>
+
+            <div class="workout-info">
+
+                <strong>
+                    ${escapeHTML(name)}
+                </strong>
+
+                <small>
+                    ${formatDate(activity.start_time)}
+                </small>
+
+            </div>
+
+            <div class="workout-data">
+
+                <strong>
+                    ${formatDuration(activity.elapsed_time)}
+                </strong>
+
+                <small>
+                    ${formatNumber(activity.calories)} kcal
+                </small>
+
+            </div>
+
+        `;
+
+
+        container.appendChild(div);
+
+    });
+
 }
 
 
-// ==========================================
-// ALL TRAINING
-// ==========================================
+// ============================================================
+// TRAINING PAGE
+// ============================================================
 
-function renderAllWorkouts() {
+function updateTraining() {
 
     const container =
         document.getElementById("allWorkouts");
 
+    if (!container) return;
+
+
     container.innerHTML = "";
 
 
-    healthData.training.workouts
-        .forEach(workout => {
+    activities.forEach(activity => {
 
-            const card =
-                document.createElement("div");
+        const card =
+            document.createElement("div");
 
-            card.className =
-                "training-card";
-
-
-            const distance =
-                workout.distance > 0
-                    ? `${workout.distance} km`
-                    : "—";
+        card.className =
+            "training-card";
 
 
-            card.innerHTML = `
+        card.innerHTML = `
 
-                <div class="training-card-top">
+            <div class="training-card-top">
 
-                    <div>
-
-                        <span class="label">
-
-                            ${workout.type.toUpperCase()}
-
-                        </span>
-
-                        <h3>
-                            ${workout.name}
-                        </h3>
-
-                        <span class="date">
-
-                            ${workout.date}
-
-                        </span>
-
-                    </div>
-
-
-                    <div class="workout-icon">
-
-                        ${workoutIcon(workout.type)}
-
-                    </div>
-
+                <div class="training-icon">
+                    ${getSportIcon(activity.sport)}
                 </div>
 
+                <span>
+                    ${formatDate(activity.start_time)}
+                </span>
 
-                <div class="training-metrics">
+            </div>
 
-                    <div class="training-metric">
+            <h3>
+                ${escapeHTML(
+                    activity.name ||
+                    activity.sport ||
+                    "Träning"
+                )}
+            </h3>
 
-                        <span>
-                            TID
-                        </span>
+            <div class="training-metrics">
 
-                        <strong>
-                            ${workout.duration} min
-                        </strong>
-
-                    </div>
-
-
-                    <div class="training-metric">
-
-                        <span>
-                            DISTANS
-                        </span>
-
-                        <strong>
-                            ${distance}
-                        </strong>
-
-                    </div>
-
-
-                    <div class="training-metric">
-
-                        <span>
-                            KALORIER
-                        </span>
-
-                        <strong>
-                            ${workout.calories}
-                        </strong>
-
-                    </div>
-
+                <div>
+                    <small>TID</small>
+                    <strong>
+                        ${formatDuration(
+                            activity.elapsed_time
+                        )}
+                    </strong>
                 </div>
 
-            `;
+                <div>
+                    <small>KALORIER</small>
+                    <strong>
+                        ${formatNumber(
+                            activity.calories
+                        )}
+                    </strong>
+                </div>
+
+                <div>
+                    <small>PULS</small>
+                    <strong>
+                        ${activity.avg_hr ?? "—"}
+                    </strong>
+                </div>
+
+            </div>
+
+        `;
 
 
-            container.appendChild(card);
+        container.appendChild(card);
 
-        });
+    });
+
 }
 
 
-// ==========================================
+// ============================================================
+// HEALTH PAGE
+// ============================================================
+
+function updateHealth() {
+
+    const cards =
+        document.querySelectorAll(
+            "#health .big-health-card"
+        );
+
+
+    if (cards.length < 4) return;
+
+
+    const resting =
+        dashboardData.restingHeartRate;
+
+
+    cards[0].querySelector(
+        "strong"
+    ).innerHTML =
+        `${resting ?? "—"} <small>bpm</small>`;
+
+
+    const latestHRV =
+        hrvData.length
+            ? hrvData[0].hrv
+            : null;
+
+
+    cards[1].querySelector(
+        "strong"
+    ).innerHTML =
+        `${latestHRV ?? "—"} <small>ms</small>`;
+
+
+    cards[2].querySelector(
+        "strong"
+    ).textContent =
+        dashboardData.stress ?? "—";
+
+
+    const battery =
+        dashboardData.bodyBattery?.max;
+
+
+    cards[3].querySelector(
+        "strong"
+    ).textContent =
+        battery !== null &&
+        battery !== undefined
+            ? `${battery}%`
+            : "—";
+
+
+    const batteryBar =
+        cards[3].querySelector(
+            ".battery-level"
+        );
+
+
+    if (batteryBar && battery != null) {
+
+        batteryBar.style.width =
+            `${battery}%`;
+
+    }
+
+}
+
+
+// ============================================================
+// SLEEP PAGE
+// ============================================================
+
+function updateSleep() {
+
+    if (!dashboardData?.sleep) return;
+
+
+    const sleep =
+        dashboardData.sleep;
+
+
+    const sleepScore =
+        document.querySelector(
+            ".sleep-score strong"
+        );
+
+
+    if (sleepScore) {
+
+        sleepScore.textContent =
+            sleep.score ?? "—";
+
+    }
+
+
+    const sleepTime =
+        document.querySelector(
+            ".sleep-time strong"
+        );
+
+
+    if (sleepTime) {
+
+        sleepTime.textContent =
+            formatSleep(sleep.total);
+
+    }
+
+
+    const stages =
+        document.querySelectorAll(
+            ".sleep-stages div strong"
+        );
+
+
+    if (stages.length >= 3) {
+
+        stages[0].textContent =
+            formatSleep(sleep.deep);
+
+
+        stages[1].textContent =
+            formatSleep(sleep.rem);
+
+
+        stages[2].textContent =
+            formatSleep(sleep.light);
+
+    }
+
+}
+
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+
+function updateAnalytics() {
+
+    if (!dailyData.length) return;
+
+
+    const latest =
+        dailyData[0];
+
+
+    const cards =
+        document.querySelectorAll(
+            ".analytics-card"
+        );
+
+
+    if (cards.length >= 4) {
+
+        cards[1].querySelector(
+            "strong"
+        ).textContent =
+            formatNumber(
+                latest.steps
+            );
+
+
+        cards[2].querySelector(
+            "strong"
+        ).textContent =
+            dashboardData.sleep?.total
+                ? formatSleep(
+                    dashboardData.sleep.total
+                )
+                : "—";
+
+
+        cards[3].querySelector(
+            "strong"
+        ).textContent =
+            activities.length;
+
+    }
+
+}
+
+
+// ============================================================
 // CHART
-// ==========================================
+// ============================================================
 
-let mainChart;
+let mainChart = null;
 
 
-function createChart(dataKey = "trainingLoad") {
+function createChart() {
 
     const canvas =
-        document.getElementById("mainChart");
+        document.getElementById(
+            "mainChart"
+        );
+
 
     if (!canvas) return;
 
 
-    if (mainChart) {
-
-        mainChart.destroy();
-
-    }
-
-
-    const ctx =
-        canvas.getContext("2d");
-
-
-    const data =
-        healthData.weekly[dataKey];
-
-
     const labels =
-        healthData.weekly.labels;
+        dailyData
+            .slice(0, 14)
+            .reverse()
+            .map(item =>
+                new Date(
+                    item.day
+                ).toLocaleDateString(
+                    "sv-SE",
+                    {
+                        day: "numeric",
+                        month: "short"
+                    }
+                )
+            );
 
 
-    let label = "Belastning";
+    const values =
+        dailyData
+            .slice(0, 14)
+            .reverse()
+            .map(item =>
+                item.steps || 0
+            );
 
 
-    if (dataKey === "steps") {
-        label = "Steg";
-    }
+    mainChart =
+        new Chart(canvas, {
 
-    if (dataKey === "heartRate") {
-        label = "Vilopuls";
-    }
+            type: "line",
 
-    if (dataKey === "calories") {
-        label = "Kalorier";
-    }
+            data: {
 
+                labels,
 
-    mainChart = new Chart(ctx, {
+                datasets: [{
 
-        type: "line",
+                    label: "Steg",
 
-        data: {
+                    data: values,
 
-            labels: labels,
+                    borderWidth: 2,
 
-            datasets: [{
+                    tension: 0.35,
 
-                label: label,
+                    fill: true
 
-                data: data,
-
-                borderColor: "#8cff4f",
-
-                backgroundColor:
-                    "rgba(140,255,79,.08)",
-
-                borderWidth: 2,
-
-                pointBackgroundColor:
-                    "#8cff4f",
-
-                pointBorderColor:
-                    "#8cff4f",
-
-                pointRadius: 3,
-
-                pointHoverRadius: 6,
-
-                tension: .38,
-
-                fill: true
-
-            }]
-
-        },
-
-
-        options: {
-
-            responsive: true,
-
-            maintainAspectRatio: false,
-
-
-            interaction: {
-
-                intersect: false,
-
-                mode: "index"
+                }]
 
             },
 
+            options: {
 
-            plugins: {
+                responsive: true,
 
-                legend: {
+                maintainAspectRatio: false,
 
-                    display: false
+                plugins: {
 
-                },
-
-                tooltip: {
-
-                    backgroundColor:
-                        "#11161c",
-
-                    borderColor:
-                        "#303943",
-
-                    borderWidth: 1,
-
-                    titleColor:
-                        "#ffffff",
-
-                    bodyColor:
-                        "#8cff4f",
-
-                    padding: 12
-
-                }
-
-            },
-
-
-            scales: {
-
-                x: {
-
-                    grid: {
-
+                    legend: {
                         display: false
-
-                    },
-
-                    ticks: {
-
-                        color: "#697580",
-
-                        font: {
-
-                            size: 10
-
-                        }
-
                     }
 
                 },
 
+                scales: {
 
-                y: {
-
-                    beginAtZero: false,
-
-                    grid: {
-
-                        color:
-                            "rgba(255,255,255,.045)"
-
-                    },
-
-                    ticks: {
-
-                        color: "#697580",
-
-                        font: {
-
-                            size: 9
-
-                        }
-
+                    y: {
+                        beginAtZero: true
                     }
 
                 }
 
             }
 
-        }
-
-    });
-
-}
-
-
-// ==========================================
-// CHART BUTTONS
-// ==========================================
-
-document.querySelectorAll(".chart-button")
-    .forEach(button => {
-
-        button.addEventListener("click", () => {
-
-            document
-                .querySelectorAll(".chart-button")
-                .forEach(btn => {
-
-                    btn.classList.remove("active");
-
-                });
-
-
-            button.classList.add("active");
-
-
-            createChart(
-                button.dataset.chart
-            );
-
         });
 
-    });
-
-
-// ==========================================
-// SYNC
-// ==========================================
-
-function syncData() {
-
-    const button =
-        document.querySelector(".sync-button");
-
-    if (!button) return;
-
-
-    button.innerHTML =
-        "↻ SYNKAR...";
-
-
-    button.disabled = true;
-
-
-    setTimeout(() => {
-
-        button.innerHTML =
-            "✓ SYNKAD";
-
-
-        document.getElementById(
-            "lastSync"
-        ).textContent =
-            "Senast synkad: just nu";
-
-
-        setTimeout(() => {
-
-            button.innerHTML =
-                "↻ SYNKA DATA";
-
-            button.disabled = false;
-
-        }, 1800);
-
-    }, 1200);
 }
 
 
-// ==========================================
+// ============================================================
+// SYNC
+// ============================================================
+
+async function syncData() {
+
+    const button =
+        document.querySelector(
+            ".sync-button"
+        );
+
+
+    if (button) {
+
+        button.disabled = true;
+
+        button.innerHTML =
+            `<span>↻</span> SYNKAR...`;
+
+    }
+
+
+    await loadGarminData();
+
+
+    if (button) {
+
+        button.disabled = false;
+
+        button.innerHTML =
+            `<span>↻</span> SYNKA DATA`;
+
+    }
+
+}
+
+
+// ============================================================
+// LAST SYNC
+// ============================================================
+
+function updateLastSync() {
+
+    const element =
+        document.getElementById(
+            "lastSync"
+        );
+
+
+    if (!element) return;
+
+
+    const now =
+        new Date();
+
+
+    element.textContent =
+        "Senast synkad: " +
+        now.toLocaleTimeString(
+            "sv-SE",
+            {
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        );
+
+}
+
+
+// ============================================================
+// CONNECTION ERROR
+// ============================================================
+
+function showConnectionError() {
+
+    console.error(
+        "Garmin API kunde inte nås."
+    );
+
+
+    const status =
+        document.querySelector(
+            ".garmin-status small"
+        );
+
+
+    if (status) {
+
+        status.innerHTML =
+            `<i></i> API offline`;
+
+    }
+
+}
+
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+
+function setupNavigation() {
+
+    const navItems =
+        document.querySelectorAll(
+            ".nav-item"
+        );
+
+
+    const pages =
+        document.querySelectorAll(
+            ".page"
+        );
+
+
+    navItems.forEach(item => {
+
+        item.addEventListener(
+            "click",
+            () => {
+
+                const page =
+                    item.dataset.page;
+
+
+                navItems.forEach(
+                    n =>
+                        n.classList.remove(
+                            "active"
+                        )
+                );
+
+
+                item.classList.add(
+                    "active"
+                );
+
+
+                pages.forEach(
+                    p =>
+                        p.classList.remove(
+                            "active-page"
+                        )
+                );
+
+
+                const target =
+                    document.getElementById(
+                        page
+                    );
+
+
+                if (target) {
+
+                    target.classList.add(
+                        "active-page"
+                    );
+
+                }
+
+
+                const title =
+                    item.textContent
+                        .trim();
+
+
+                setText(
+                    "pageTitle",
+                    title
+                );
+
+            }
+        );
+
+    });
+
+
+    document.querySelectorAll(
+        "[data-page-link]"
+    ).forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                const page =
+                    button.dataset.pageLink;
+
+
+                const nav =
+                    document.querySelector(
+                        `[data-page="${page}"]`
+                    );
+
+
+                if (nav) nav.click();
+
+            }
+        );
+
+    });
+
+}
+
+
+// ============================================================
+// CHART BUTTONS
+// ============================================================
+
+function setupChartButtons() {
+
+    document.querySelectorAll(
+        ".chart-button"
+    ).forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                document.querySelectorAll(
+                    ".chart-button"
+                ).forEach(
+                    b =>
+                        b.classList.remove(
+                            "active"
+                        )
+                );
+
+
+                button.classList.add(
+                    "active"
+                );
+
+
+                updateMainChart(
+                    button.dataset.chart
+                );
+
+            }
+        );
+
+    });
+
+}
+
+
+function updateMainChart(type) {
+
+    if (!mainChart) return;
+
+
+    let values = [];
+
+
+    const recent =
+        dailyData
+            .slice(0, 14)
+            .reverse();
+
+
+    if (type === "steps") {
+
+        values =
+            recent.map(
+                x => x.steps || 0
+            );
+
+    }
+
+    else if (type === "calories") {
+
+        values =
+            recent.map(
+                x => x.calories_total || 0
+            );
+
+    }
+
+    else if (type === "heartRate") {
+
+        values =
+            recent.map(
+                x => x.rhr || 0
+            );
+
+    }
+
+    else {
+
+        values =
+            recent.map(
+                x => x.stress_avg || 0
+            );
+
+    }
+
+
+    mainChart.data.datasets[0].data =
+        values;
+
+
+    mainChart.data.datasets[0].label =
+        type;
+
+
+    mainChart.update();
+
+}
+
+
+// ============================================================
+// UTILITIES
+// ============================================================
+
+function setText(id, value) {
+
+    const element =
+        document.getElementById(id);
+
+    if (element) {
+
+        element.textContent =
+            value;
+
+    }
+
+}
+
+
+function setWidth(id, percentage) {
+
+    const element =
+        document.getElementById(id);
+
+    if (element) {
+
+        element.style.width =
+            `${percentage}%`;
+
+    }
+
+}
+
+
+function getSportIcon(sport) {
+
+    if (!sport) return "◈";
+
+
+    sport =
+        sport.toLowerCase();
+
+
+    if (sport.includes("running")) return "🏃";
+
+    if (sport.includes("cycling")) return "🚴";
+
+    if (sport.includes("swimming")) return "🏊";
+
+    if (sport.includes("walking")) return "🚶";
+
+    if (sport.includes("fitness")) return "🏋️";
+
+    if (sport.includes("strength")) return "🏋️";
+
+
+    return "◈";
+
+}
+
+
+function escapeHTML(value) {
+
+    if (value === null ||
+        value === undefined) {
+
+        return "";
+
+    }
+
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+
+// ============================================================
 // START
-// ==========================================
+// ============================================================
 
-loadDashboard();
+document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
 
-renderWorkouts();
+        setupNavigation();
 
-renderAllWorkouts();
+        setupChartButtons();
 
-createChart();
+        await loadGarminData();
 
+        createChart();
 
-// ==========================================
-// CONSOLE
-// ==========================================
-
-console.log(
-    "MY HEALTH loaded successfully."
-);
-
-console.log(
-    "Garmin connection:",
-    healthData.user.connected
+    }
 );
